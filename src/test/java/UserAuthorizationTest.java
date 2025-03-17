@@ -4,24 +4,26 @@ import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import pojo.UserData;
-import requestsMethods.BaseApi;
+import ru.stellarburgers.models.UserData;
+import ru.stellarburgers.requests.BaseApi;
 
-import static requestsMethods.UserAuthorizationRequests.sendPostRequestUserAuthorization;
-import static requestsMethods.UserCreatingRequests.*;
-import static responseMethods.UserAuthorizationResponse.checkResponseWithIncorrectData;
-import static responseMethods.UserCreatingResponse.checkCode200Response;
-import static responseMethods.UserCreatingResponse.checkResponseBody;
+import static ru.stellarburgers.requests.UserAuthorizationRequests.sendPostRequestUserAuthorization;
+import static ru.stellarburgers.requests.UserCreatingRequests.*;
+import static ru.stellarburgers.responses.UserAuthorizationResponse.*;
+import static ru.stellarburgers.responses.UserCreatingResponse.checkCode200Response;
+import static ru.stellarburgers.responses.UserCreatingResponse.checkResponseBody;
 
 public class UserAuthorizationTest {
     private UserData user;
     private UserData userAuthorization;
     private String userAccessToken;
+    private UserFactory userFactory;
 
     @Before
-    public void before() {
+    public void beforeTest() {
         new BaseApi();
-        user = new UserData("anna@gmail.com", "3333", "Ann");
+        userFactory = new UserFactory();
+        user = userFactory.createRandomUser();
         Response response = sendPostRequestUserCreating(user);
         userAccessToken = getAccessToken(response);
     }
@@ -29,8 +31,8 @@ public class UserAuthorizationTest {
     @Test
     @DisplayName("Successful user authorization")
     @Description("Code 200  for /api/auth/login with correct data")
-    public void checkSuccessfulUserAuthorization() {
-        userAuthorization = new UserData("anna@gmail.com", "3333");
+    public void testCheckSuccessfulUserAuthorization() {
+        userAuthorization = new UserData(user.getEmail(), user.getPassword());
         Response responseAuthorization = sendPostRequestUserAuthorization(userAuthorization);
         checkCode200Response(responseAuthorization);
         checkResponseBody(responseAuthorization, user);
@@ -39,14 +41,15 @@ public class UserAuthorizationTest {
     @Test
     @DisplayName("Unsuccessful user authorization")
     @Description("Code 401  for /api/auth/login with incorrect data")
-    public void checkUnsuccessfulUserAuthorization() {
-        userAuthorization = new UserData("na@gmail.com", "33");
+    public void testCheckUnsuccessfulUserAuthorization() {
+        userAuthorization = new UserData("f" + user.getEmail(), "1" + user.getPassword());
         Response responseAuthorization = sendPostRequestUserAuthorization(userAuthorization);
+        checkCode401Response(responseAuthorization);
         checkResponseWithIncorrectData(responseAuthorization);
     }
 
     @After
-    public void after() {
+    public void afterTest() {
         if (userAccessToken != null) {
             deleteUser(userAccessToken);
         }

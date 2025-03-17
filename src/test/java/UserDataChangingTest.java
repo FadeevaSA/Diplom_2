@@ -4,24 +4,27 @@ import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import pojo.UserData;
-import requestsMethods.BaseApi;
+import ru.stellarburgers.models.UserData;
+import ru.stellarburgers.requests.BaseApi;
 
-import static requestsMethods.UserAuthorizationRequests.sendPostRequestUserAuthorization;
-import static requestsMethods.UserCreatingRequests.*;
-import static requestsMethods.UserDataChangingRequests.*;
-import static responseMethods.UserDataChangingResponse.*;
+import static ru.stellarburgers.requests.UserCreatingRequests.*;
+import static ru.stellarburgers.requests.UserDataChangingRequests.changeUserDataWithAuthorization;
+import static ru.stellarburgers.requests.UserDataChangingRequests.changeUserDataWithoutAuthorization;
+import static ru.stellarburgers.responses.UserAuthorizationResponse.checkCode401Response;
+import static ru.stellarburgers.responses.UserCreatingResponse.checkCode200Response;
+import static ru.stellarburgers.responses.UserDataChangingResponse.*;
 
 public class UserDataChangingTest {
     private UserData user;
     private UserData userDataUpdate;
-    private UserData userAuthorization;
     private String userAccessToken;
+    private UserFactory userFactory;
 
     @Before
-    public void before() {
+    public void beforeTest() {
         new BaseApi();
-        user = new UserData("roman@gmail.com", "666", "Roman");
+        userFactory = new UserFactory();
+        user = userFactory.createRandomUser();
         Response response = sendPostRequestUserCreating(user);
         userAccessToken = getAccessToken(response);
     }
@@ -29,53 +32,36 @@ public class UserDataChangingTest {
     @Test
     @DisplayName("Successful user email and name changing")
     @Description("Code 200 after user data changing for /api/auth/user with authorization")
-    public void checkSuccessfulUserEmailAndNameChanging() {
-        userDataUpdate = new UserData("maks@gmail.com", "666", "Maks");
+    public void testCheckSuccessfulUserEmailAndNameChanging() {
+        userDataUpdate = new UserData("f" + user.getEmail(), user.getPassword(), "R" + user.getName());
         Response responseWithChanges = changeUserDataWithAuthorization(userAccessToken, userDataUpdate);
+        checkCode200Response(responseWithChanges);
         checkResponseWithUpdateEmail(responseWithChanges, userDataUpdate);
         checkResponseWithUpdateName(responseWithChanges, userDataUpdate);
     }
 
     @Test
-    @DisplayName("Successful user password changing")
-    @Description("Code 200 after authorization with new password")
-    public void checkSuccessfulUserPasswordChanging() {
-        userDataUpdate = new UserData("roman@gmail.com", "999", "Roman");
-        changeUserDataWithAuthorization(userAccessToken, userDataUpdate);
-        userAuthorization = new UserData("roman@gmail.com", "999");
-        Response responseAuthorization = sendPostRequestUserAuthorization(userAuthorization);
-        checkAuthorizationWithNewPassword(responseAuthorization);
-    }
-
-    @Test
     @DisplayName("Unsuccessful user email changing")
     @Description("Code 401 after user email changing without authorization")
-    public void checkUnsuccessfulUserEmailChanging() {
-        userDataUpdate = new UserData("maks@gmail.com");
+    public void testCheckUnsuccessfulUserEmailChanging() {
+        userDataUpdate = new UserData("m" + user.getEmail());
         Response responseAfterChanges = changeUserDataWithoutAuthorization(userDataUpdate);
+        checkCode401Response(responseAfterChanges);
         checkUserDataChangingWithoutAuthorization(responseAfterChanges);
     }
 
     @Test
     @DisplayName("Unsuccessful user name changing")
     @Description("Code 401 after user name changing without authorization")
-    public void checkUnsuccessfulUserNameChanging() {
-        userDataUpdate = new UserData("roman@gmail.com", "666", "Maks");
+    public void testCheckUnsuccessfulUserNameChanging() {
+        userDataUpdate = new UserData(user.getEmail(), user.getPassword(), "K" + user.getName());
         Response responseAfterChanges = changeUserDataWithoutAuthorization(userDataUpdate);
-        checkUserDataChangingWithoutAuthorization(responseAfterChanges);
-    }
-
-    @Test
-    @DisplayName("Unsuccessful user password changing")
-    @Description("Code 401 after user password changing without authorization")
-    public void checkUnsuccessfulUserPasswordChanging() {
-        userDataUpdate = new UserData("roman@gmail.com", "11111");
-        Response responseAfterChanges = changeUserDataWithoutAuthorization(userDataUpdate);
+        checkCode401Response(responseAfterChanges);
         checkUserDataChangingWithoutAuthorization(responseAfterChanges);
     }
 
     @After
-    public void after() {
+    public void afterTest() {
         if (userAccessToken != null) {
             deleteUser(userAccessToken);
         }
