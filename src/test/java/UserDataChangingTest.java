@@ -30,13 +30,22 @@ public class UserDataChangingTest {
     }
 
     @Test
-    @DisplayName("Successful user email and name changing")
-    @Description("Code 200 after user data changing for /api/auth/user with authorization")
-    public void testCheckSuccessfulUserEmailAndNameChanging() {
-        userDataUpdate = new UserData("f" + user.getEmail(), user.getPassword(), "R" + user.getName());
+    @DisplayName("Successful user email changing")
+    @Description("Code 200 after user email changing for /api/auth/user with authorization")
+    public void testCheckSuccessfulUserEmailChanging() {
+        userDataUpdate = new UserData("f" + user.getEmail(), user.getPassword(), user.getName());
         Response responseWithChanges = changeUserDataWithAuthorization(userAccessToken, userDataUpdate);
         checkCode200Response(responseWithChanges);
         checkResponseWithUpdateEmail(responseWithChanges, userDataUpdate);
+    }
+
+    @Test
+    @DisplayName("Successful user name changing")
+    @Description("Code 200 after user name changing for /api/auth/user with authorization")
+    public void testCheckSuccessfulUserNameChanging() {
+        userDataUpdate = new UserData(user.getEmail(), user.getPassword(), "R" + user.getName());
+        Response responseWithChanges = changeUserDataWithAuthorization(userAccessToken, userDataUpdate);
+        checkCode200Response(responseWithChanges);
         checkResponseWithUpdateName(responseWithChanges, userDataUpdate);
     }
 

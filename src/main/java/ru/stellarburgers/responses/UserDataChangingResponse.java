@@ -15,7 +15,7 @@ public class UserDataChangingResponse {
 
     @Step("Checking the response after user name changing")
     public static void checkResponseWithUpdateName(Response response, UserData user) {
-        response.then().assertThat().body("user.name", equalTo(user.getName()));
+        response.then().assertThat().body("success", equalTo(true)).body("user.name", equalTo(user.getName()));
     }
 
     @Step("Checking the response after user data changing without authorization")

@@ -39,10 +39,20 @@ public class UserAuthorizationTest {
     }
 
     @Test
-    @DisplayName("Unsuccessful user authorization")
-    @Description("Code 401  for /api/auth/login with incorrect data")
-    public void testCheckUnsuccessfulUserAuthorization() {
-        userAuthorization = new UserData("f" + user.getEmail(), "1" + user.getPassword());
+    @DisplayName("Unsuccessful user authorization with incorrect email")
+    @Description("Code 401 for /api/auth/login with incorrect email")
+    public void testUnsuccessfulAuthorizationWithIncorrectEmail() {
+        userAuthorization = new UserData("f" + user.getEmail(), user.getPassword());
+        Response responseAuthorization = sendPostRequestUserAuthorization(userAuthorization);
+        checkCode401Response(responseAuthorization);
+        checkResponseWithIncorrectData(responseAuthorization);
+    }
+
+    @Test
+    @DisplayName("Unsuccessful user authorization with incorrect password")
+    @Description("Code 401 for /api/auth/login with incorrect password")
+    public void testUnsuccessfulAuthorizationWithIncorrectPassword() {
+        userAuthorization = new UserData(user.getEmail(), "1" + user.getPassword());
         Response responseAuthorization = sendPostRequestUserAuthorization(userAuthorization);
         checkCode401Response(responseAuthorization);
         checkResponseWithIncorrectData(responseAuthorization);
